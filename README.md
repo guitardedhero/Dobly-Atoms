@@ -2,7 +2,7 @@
 
 #### *Ported and meticulously prepared by guitardedhero*
 
-![alt text](https://images.app.goo.gl/usJuB6acg1VTcH4N6)
+#### [XDA Thread](https://forum.xda-developers.com/android/software/app-dolby-atmos-axon-7-oreo-port-t3740508)
 
 ### About:
 This module installs the popular Dolby Atmos™ sound enhancement solution to Android devices 9.0+.
@@ -18,9 +18,7 @@ This module installs the popular Dolby Atmos™ sound enhancement solution to An
 ### Known Issues:
  - Permissive SELinux due to unacceptable Magisk solutions
  - Forced edit of one partition file due to Magisk shortcoming
- 
-#### [XDA Thread](https://forum.xda-developers.com/android/software/app-dolby-atmos-axon-7-oreo-port-t3740508)
- 
+
 ### Credits:
  - [Dolby™](https://www.dolby.com)
 
