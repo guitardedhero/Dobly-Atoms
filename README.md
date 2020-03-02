@@ -20,7 +20,7 @@ This module installs the popular Dolby Atmos™ sound enhancement solution to An
  - Forced edit of one partition file due to Magisk shortcoming
 
 ### Credits:
- - [Dolby™](https://www.dolby.com)
+ - [www.dolby.com](www.dolby.com)
 
 ### Changelog:
  - **1.0:** Initial GitHub Release.
