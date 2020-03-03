@@ -1,4 +1,5 @@
 #!/system/bin/sh
+MODDIR=${0%/*}
 
 
 # Dolby Atmos™ partition file restoration

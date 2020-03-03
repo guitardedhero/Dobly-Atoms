@@ -23,14 +23,13 @@ compatible() {
 prepare_environment() {
   ui_print " "
   ui_print "- Preparing environment..."
-  mount -o rw,remount / 2>/dev/null
   if [ "$BOOTMODE" ]; then
     mount -o rw,remount / 2>/dev/null
     mirror=/sbin/.magisk/mirror
-    sys=$(realpath $mirror/system)
-    ven=$(realpath $mirror/vendor)
     sysroot=$mirror/system_root
     mount -o rw,remount $sysroot 2>/dev/null
+    sys=$(realpath $mirror/system)
+    ven=$(realpath $mirror/vendor)
     mount -o rw,remount $sys 2>/dev/null
     mount -o rw,remount $ven 2>/dev/null
   else
@@ -46,14 +45,6 @@ prepare_environment() {
   base=$TMPDIR/dolbylabs/base
   arm=$TMPDIR/dolbylabs/arm
   arm64=$TMPDIR/dolbylabs/arm64
-  acdbconfig=$MODPATH/acdb.conf
-  modsys=$MODPATH/system
-  modetc=$MODPATH/system/etc
-  modven=$MODPATH/system/vendor
-  modbin=$MODPATH/system/vendor/bin
-  modvetc=$MODPATH/system/vendor/etc
-  modlib=$MODPATH/system/vendor/lib
-  modlib64=$MODPATH/system/vendor/lib64
   sleep 1
   ui_print "  √ Ready"
   ui_print " "
@@ -73,6 +64,14 @@ check_compatibility() {
   else
     compatible
     cp -rf $base/* $MODPATH
+    acdbconfig=$MODPATH/acdb.conf
+    modsys=$MODPATH/system
+    modetc=$MODPATH/system/etc
+    modven=$MODPATH/system/vendor
+    modbin=$MODPATH/system/vendor/bin
+    modvetc=$MODPATH/system/vendor/etc
+    modlib=$MODPATH/system/vendor/lib
+    modlib64=$MODPATH/system/vendor/lib64
     if [ "$IS64BIT" == "true" ]; then
       cp -rf $arm64/* $MODPATH
     else
