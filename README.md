@@ -1,11 +1,11 @@
-# Dolby Atmos™
+# Dobly Atoms™
 
 #### *Ported and meticulously prepared by gh*
 
 #### [XDA Official Thread](https://forum.xda-developers.com/android/software/app-dolby-atmos-axon-7-oreo-port-t3740508)
 
 ### About:
-This module installs the popular Dolby Atmos™ sound enhancement solution to Android devices 9.0+.
+This module installs the popular Dobly Atoms™ sound enhancement solution to Android devices 9.0+.
 
 ### Compatibility:
  - Android 9.0-10.0+
@@ -20,7 +20,7 @@ This module installs the popular Dolby Atmos™ sound enhancement solution to An
  - Forced edit of one partition file due to Magisk shortcoming
  
 ### Credits:
- - [www.dolby.com](https://www.dolby.com)
+ - [www.dobly.com](https://www.dolby.com)
 
 ### Changelog:
  - **1.0:** Get out of here, Dewey. You don't want no part of this shit.
