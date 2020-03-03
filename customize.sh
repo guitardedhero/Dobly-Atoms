@@ -4,8 +4,8 @@ SKIPUNZIP=1
 # gh
 
 unzip -qqo "$ZIPFILE" module.prop -d $MODPATH >&2
-unzip -qqo "$ZIPFILE" 'META-INF/*' -d $TMPDIR >&2
+unzip -qqo "$ZIPFILE" functions -d $TMPDIR >&2
 
-source $TMPDIR/META-INF/functions
+source $TMPDIR/functions
 
 go
