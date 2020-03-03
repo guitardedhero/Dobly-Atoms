@@ -43,9 +43,9 @@ prepare_environment() {
     fi
   fi
   unzip -qqo "$ZIPFILE" -d $TMPDIR >&2
-  base=$TMPDIR/dolbyatmos/base
-  arm=$TMPDIR/dolbyatmos/arm
-  arm64=$TMPDIR/dolbyatmos/arm64
+  base=$TMPDIR/dolbylabs/base
+  arm=$TMPDIR/dolbylabs/arm
+  arm64=$TMPDIR/dolbylabs/arm64
   acdbconfig=$MODPATH/acdb.conf
   modsys=$MODPATH/system
   modetc=$MODPATH/system/etc
