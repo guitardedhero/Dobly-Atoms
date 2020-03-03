@@ -1,0 +1,200 @@
+
+# Dolby Atmos™ functions
+# gh
+
+unsupported() {
+  ui_print "  X Only Android 9.0+ supported"
+  ui_print " "
+  exit 1
+}
+
+incompatible() {
+  ui_print "  X Incompatibility detected"
+  ui_print " "
+  exit 1
+}
+
+compatible() {
+  ui_print "  √ Compatibility detected"
+  ui_print " "
+  sleep 1
+}
+
+prepare_environment() {
+  ui_print " "
+  ui_print "- Preparing environment..."
+  mount -o rw,remount / 2>/dev/null
+  if [ "$BOOTMODE" ]; then
+    mount -o rw,remount / 2>/dev/null
+    mirror=/sbin/.magisk/mirror
+    sys=$(realpath $mirror/system)
+    ven=$(realpath $mirror/vendor)
+    sysroot=$mirror/system_root
+    mount -o rw,remount $sysroot 2>/dev/null
+    mount -o rw,remount $sys 2>/dev/null
+    mount -o rw,remount $ven 2>/dev/null
+  else
+    sys=/system
+    ven=/vendor
+    mount -o rw,remount $sys 2>/dev/null
+    mount -o rw,remount $ven 2>/dev/null
+    if [ -L "$ven" ]; then
+      ven=$sys/vendor
+    fi
+  fi
+  unzip -qqo "$ZIPFILE" -d $TMPDIR >&2
+  base=$TMPDIR/dolbyatmos/base
+  arm=$TMPDIR/dolbyatmos/arm
+  arm64=$TMPDIR/dolbyatmos/arm64
+  acdbconfig=$MODPATH/acdb.conf
+  modsys=$MODPATH/system
+  modetc=$MODPATH/system/etc
+  modven=$MODPATH/system/vendor
+  modbin=$MODPATH/system/vendor/bin
+  modvetc=$MODPATH/system/vendor/etc
+  modlib=$MODPATH/system/vendor/lib
+  modlib64=$MODPATH/system/vendor/lib64
+  sleep 1
+  ui_print "  √ Ready"
+  ui_print " "
+  sleep 1
+}
+
+check_compatibility() {
+  ui_print "- Checking rom compatibility..."
+  hwlib=$(find $sys -type f -name "android.hardware.audio@2.0.so")
+  compatible1=$(grep "_ZN7android8hardware7details15gServicePrioMapE" $hwlib)
+  compatible2=$(grep "_ZN7android8hardware7details19getBnConstructorMapEv" $hwlib)
+  if [ "$API" -lt "28" ]; then
+    sleep 1
+    unsupported
+  elif [ ! "$compatible1" ] || [ ! "$compatible2" ]; then
+    incompatible
+  else
+    compatible
+    cp -rf $base/* $MODPATH
+    if [ "$IS64BIT" == "true" ]; then
+      cp -rf $arm64/* $MODPATH
+    else
+      cp -rf $arm/* $MODPATH
+    fi
+  fi
+}
+
+register_service() {
+  ui_print "- Registering Dolby service..."
+  manifest=$(find $sys/etc -type f -name "manifest.xml")
+  vintf=$(dirname $manifest)
+  mount -o rw, remount $vintf 2>/dev/null
+  if [ -e "$manifest" ]; then
+    dms=$(grep "dms" $manifest)
+    if [ ! "$dms" ]; then
+      if [ ! -e "$manifest.bak" ]; then
+        cp -f $manifest $manifest.bak
+      fi
+      sed -i '1,/^    <hal format=\"hidl\">/s/^    <hal format=\"hidl\">/    <hal format=\"hidl\">\n        <name>vendor.dolby.hardware.dms<\/name>\n        <transport>hwbinder<\/transport>\n        <version>1.0<\/version>\n        <interface>\n            <name>IDms<\/name>\n            <instance>default<\/instance>\n        <\/interface>\n        <fqname>@1.0::IDms\/default<\/fqname>\n    <\/hal>\n    <hal format=\"hidl\">/' $manifest
+    fi
+  fi
+  sleep 1
+  dolby=$(grep "dolby" $manifest)
+  if [ "$dolby" ]; then
+    ui_print "  √ Registration success"
+  else
+    ui_print "  X Registration failure"
+  fi
+  ui_print " "
+  sleep 1
+}
+
+configure_fx() {
+  ui_print "- Configuring Dolby Atmos™ effect..."
+  sleep 1
+  acdb=/data/adb/*/acdb
+  realacdb=$(find $acdb -type f -name "acdb.conf")
+  acdbsupport=false
+  conf=*audio_effects*conf
+  xml=*audio_effects*xml
+  if [ -e "$realacdb" ]; then
+    ui_print "  √ ACDB module will handle effect configuration each device boot"
+    acdbsupport=true
+  elif [ -d "$acdb" ]; then
+    ui_print "  ! Update ACDB module for full ACDB support"
+  else
+    ui_print "  ! Install ACDB module for full ACDB support"
+  fi
+  ui_print " "
+  if [ "$acdbsupport" == "false" ]; then
+    ui_print "- Patching all Magisk module audio effects configurations..."
+    sleep 1
+    for fxconfig in $etc/$conf; do
+      if [ -e "$fxconfig" ]; then
+        mkdir -p $modetc
+        cp -f $fxconfig $modetc/
+      fi
+    done
+    for fxconfig in $vetc/$conf $vetc/$xml; do
+      if [ -e "$fxconfig" ]; then
+        cp -f $fxconfig $modvetc/
+        rm -f $modvetc/audio_effects_tune.xml 2>/dev/null
+      fi
+    done
+    conf=$(find /data/adb/modules* -type f -name "*audio_effects*.conf")
+    xml=$(find /data/adb/modules* -type f -name "*audio_effects*.xml") 
+    libraryid=$(cat $acdbconfig | sed -n -e 's/^libraryid=//p')
+    libraryname=$(cat $acdbconfig | sed -n -e 's/^libraryname=//p')
+    effectid=$(cat $acdbconfig | sed -n -e 's/^effectid=//p')
+    effectuuid=$(cat $acdbconfig | sed -n -e 's/^effectuuid=//p')
+    for fxconfig in $xml; do
+      if [ -e "$fxconfig" ]; then
+        effect=$(grep $effectuuid $fxconfig)
+        if [ ! "$effect" ]; then
+          sed -i "1,/^    <\/libraries>/s/^    <\/libraries>/        <library name=\"$libraryid\" path=\"$libraryname\"\/>\n    <\/libraries>/" $fxconfig
+          sed -i "1,/^    <\/effects>/s/^    <\/effects>/        <effectname=\"$effectid\" library=\"$libraryid\" uuid=\"$effectuuid\"\/>\n    <\/effects>/" $fxconfig
+          sed -i "1,/^            <apply effect=\"music\_helper\"\/>/s/^            <apply effect=\"music\_helper\"\/>/            <!-- apply effect=\"music\_helper\"\/ -->/" $fxconfig
+          sa3d=$(grep "sa3d" $fxconfig)
+          if [ "$sa3d" ]; then
+            sed -i "s/^            <apply effect=\"sa3d\"\/>/            <apply effect=\"sa3d\"\/>\n            <apply effect=\"$effectid\"\/>/g" $fxconfig
+          fi
+        fi
+      fi
+    done
+    for fxconfig in $conf; do
+      if [ -e "$fxconfig" ]; then
+        effect=$(grep $effectuuid $fxconfig)
+        if [ ! "$effect" ]; then
+          sed -i "s/^libraries {/libraries {\n  $libraryid {\n    path \/vendor\/lib\/soundfx\/$libraryname\n  }/" $fxconfig
+          sed -i "s/^effects {/effects {\n  $effectid {\n    library $libraryid\n    uuid $effectuuid\n  }/" $fxconfig
+          sed -i "/^        music_helper {/ {;N s/        music_helper {\n        }/#        music_helper {\n#        }/}" $fxconfig
+        fi
+      fi
+    done
+    ui_print "  ! Effect configuration without ACDB is not persistent"
+    ui_print " "
+  fi
+  sleep 1
+}
+
+finalize_module() {
+  ui_print "- Finalizing module..."
+  set_perm_recursive $MODPATH 0 0 0755 0644
+  set_perm_recursive $modbin 0 2000 0755 0755
+  chown 0:2000 $modvetc $modvetc/dolby $modlib $modlib/soundfx
+  chcon -R u:object_r:vendor_file:s0 $modven
+  chcon -R u:object_r:vendor_configs_file:s0 $modvetc
+  chcon u:object_r:hal_dms_default_exec:s0 $modbin/hw/*dolby*
+  if [ "$IS64BIT" == "true" ]; then
+    chown 0:2000 $modlib64 $modlib64/soundfx
+  fi
+  sleep 1
+  ui_print "  √ gh"
+  ui_print " "
+  sleep 1
+}
+
+go() {
+  prepare_environment
+  check_compatibility
+  register_service
+  configure_fx
+  finalize_module
+}
